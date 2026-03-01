@@ -1,10 +1,7 @@
-'''# adsguardian_ai/frontend/main.py
+# adsguardian_ai/frontend/main.py
 
 import streamlit as st
-import requests
-
-# URL da API do backend FastAPI
-API_URL = "http://127.0.0.1:8000"
+from supabase import create_client, Client
 
 # Configuração da página
 st.set_page_config(
@@ -28,6 +25,19 @@ def set_dark_mode():
 # Aplica o Dark Mode
 set_dark_mode()
 
+# Conexão com o Supabase
+@st.cache_resource
+def init_supabase_client():
+    supabase_url = st.secrets["SUPABASE_URL"]
+    supabase_key = st.secrets["SUPABASE_KEY"]
+    return create_client(supabase_url, supabase_key)
+
+supabase: Client = init_supabase_client()
+
+# Verifica se o utilizador já está logado
+if "user" in st.session_state and st.session_state.user:
+    st.switch_page("pages/dashboard.py")
+
 # Título e subtítulo
 st.title("AdsGuardian AI")
 st.subheader("Faça login para aceder ao seu painel de controlo")
@@ -43,19 +53,13 @@ with st.form("login_form"):
             st.error("Por favor, preencha todos os campos.")
         else:
             try:
-                response = requests.post(f"{API_URL}/login", json={"email": email, "password": password})
-
-                if response.status_code == 200:
-                    st.success("Login bem-sucedido!")
-                    st.session_state["logged_in"] = True
-                    st.session_state["user_email"] = email
-                    # Redireciona para o dashboard (o Streamlit trata disso)
-                    st.switch_page("pages/dashboard.py")
-                else:
-                    st.error("E-mail ou palavra-passe inválidos.")
-            except requests.exceptions.ConnectionError:
-                st.error("Não foi possível conectar à API. Verifique se o backend está em execução.")
+                user = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                st.session_state.user = user.user.dict()
+                st.session_state.logged_in = True
+                st.success("Login bem-sucedido!")
+                st.switch_page("pages/dashboard.py")
+            except Exception as e:
+                st.error(f"E-mail ou palavra-passe inválidos: {e}")
 
 # Link para registo
 st.markdown("Ainda não tem uma conta? [Registe-se aqui](#)") # Placeholder para a página de registo
-'''
