@@ -1,0 +1,12 @@
+# Ignorar ficheiros de cache do Python
+__pycache__/
+*.pyc
+
+# Ignorar ficheiros de ambiente virtual
+.venv
+venv/
+env/
+
+# Ignorar ficheiros de configuração local (NUNCA fazer commit de secrets!)
+.env
+.streamlit/secrets.toml

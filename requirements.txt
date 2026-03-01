@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+supabase
+python-dotenv
+streamlit
+requests
+pandas
+facebook_business
+openai
+stripe
